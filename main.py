@@ -1,13 +1,17 @@
-import torch
-import sounddevice as sd
+# pylint disable=E0401
+
+import sys
 import time
 import queue
+import torch
+import sounddevice as sd
 import vosk
-import sys
 from googletrans import Translator
 
 
-class Translate_voice:
+class TranslateVoice:
+    """Представление для перевода голоса"""
+
     LANGUAGE = "en"
     MODEL_ID = "v3_en"
     SAMPLE_RATE = 48000
@@ -30,12 +34,13 @@ class Translate_voice:
         self.model_vosk = vosk.Model(path_to_model)
         self.q = queue.Queue()
 
-    def _callback(self, indata, frames, time, status):
+    def _callback(self, indata, status):
         if status:
             print(status, file=sys.stderr)
         self.q.put(bytes(indata))
 
     def start(self):
+        """Метод для запуска процесса перевода голоса"""
         with sd.RawInputStream(
             samplerate=self.samplerate,
             blocksize=8000,
@@ -54,6 +59,7 @@ class Translate_voice:
                         self.play_sound(text)
 
     def play_sound(self, text: str):
+        """Метод для перевода и воспроизведения речи"""
         self.model_torch.to(self.device_torch)
         text = self.translator.translate(text, dest=self.LANGUAGE).text
         audio = self.model_torch.apply_tts(
@@ -68,5 +74,5 @@ class Translate_voice:
         sd.stop()
 
 
-q1 = Translate_voice("models/model-small")
+q1 = TranslateVoice("models/model-small")
 q1.start()
