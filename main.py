@@ -1,5 +1,3 @@
-# pylint disable=E0401
-
 import sys
 import time
 import queue
